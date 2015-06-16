@@ -324,8 +324,8 @@ func getSafeContents(p12Data, password []byte) (bags []safeBag, actualPassword [
 	return
 }
 
-// Encode produces pfxData containing one private key and one or more certificates.
-func Encode (privateKey interface{}, certificates []*x509.Certificate, utf8Password []byte) (pfxData []byte, err error) {
+// Encode produces pfxData containing one private key, a more certificate, and any number of CA certificates
+func Encode (privateKey interface{}, certificate *x509.Certificate, caCerts []*x509.Certificate, utf8Password []byte) (pfxData []byte, err error) {
 	p, err := bmpString(utf8Password)
 
 	for i := 0; i < len(utf8Password); i++ {
@@ -339,7 +339,7 @@ func Encode (privateKey interface{}, certificates []*x509.Certificate, utf8Passw
 	var pfx pfxPdu
 	pfx.Version = 3
 
-	var certFingerprint = sha1.Sum(certificates[0].Raw)
+	var certFingerprint = sha1.Sum(certificate.Raw)
 	var localKeyIdAttr pkcs12Attribute
 	localKeyIdAttr.ID = oidLocalKeyID
 	localKeyIdAttr.Value.Class = 0
@@ -350,19 +350,17 @@ func Encode (privateKey interface{}, certificates []*x509.Certificate, utf8Passw
 	}
 
 	var certBags []safeBag
-	for i, cert := range certificates {
-		var certBag safeBag
-		certBag.ID = asn1.ObjectIdentifier{1,2,840,113549,1,12,10,1,3} // TODO: don't hard code certBagType OID
-		certBag.Value.Class = 2
-		certBag.Value.Tag = 0
-		certBag.Value.IsCompound = true
-		if certBag.Value.Bytes, err = encodeCertBag(cert.Raw); err != nil {
+	var certBag *safeBag
+	if certBag, err = makeCertBag(certificate.Raw, []pkcs12Attribute{localKeyIdAttr}); err != nil {
+		return nil, err
+	}
+	certBags = append(certBags, *certBag)
+
+	for _, cert := range caCerts {
+		if certBag, err = makeCertBag(cert.Raw, []pkcs12Attribute{}); err != nil {
 			return nil, err
 		}
-		if (i == 0) {
-			certBag.Attributes = append(certBag.Attributes, localKeyIdAttr)
-		}
-		certBags = append(certBags, certBag)
+		certBags = append(certBags, *certBag)
 	}
 
 	var keyBag safeBag
@@ -417,6 +415,19 @@ func Encode (privateKey interface{}, certificates []*x509.Certificate, utf8Passw
 	if pfxData, err = asn1.Marshal(pfx); err != nil {
 		return nil, fmt.Errorf("error writing P12 data: %v", err)
 	}
+	return
+}
+
+func makeCertBag (certBytes []byte, attributes []pkcs12Attribute) (certBag *safeBag, err error) {
+	certBag = new(safeBag)
+	certBag.ID = asn1.ObjectIdentifier{1,2,840,113549,1,12,10,1,3} // TODO: don't hard code certBagType OID
+	certBag.Value.Class = 2
+	certBag.Value.Tag = 0
+	certBag.Value.IsCompound = true
+	if certBag.Value.Bytes, err = encodeCertBag(certBytes); err != nil {
+		return nil, err
+	}
+	certBag.Attributes = attributes
 	return
 }
 
