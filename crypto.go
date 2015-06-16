@@ -39,15 +39,15 @@ type pbeParams struct {
 	Iterations int
 }
 
-func pbDecrypterFor(algorithm pkix.AlgorithmIdentifier, password []byte) (cipher.BlockMode, error) {
+func pbCodeIVFor(algorithm pkix.AlgorithmIdentifier, password []byte) (cipher.Block, []byte, error) {
 	algorithmName, supported := algByOID[algorithm.Algorithm.String()]
 	if !supported {
-		return nil, NotImplementedError("algorithm " + algorithm.Algorithm.String() + " is not supported")
+		return nil, nil, NotImplementedError("algorithm " + algorithm.Algorithm.String() + " is not supported")
 	}
 
 	var params pbeParams
 	if _, err := asn1.Unmarshal(algorithm.Parameters.FullBytes, &params); err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
 	k := deriveKeyByAlg[algorithmName](params.Salt, password, params.Iterations)
@@ -56,10 +56,31 @@ func pbDecrypterFor(algorithm pkix.AlgorithmIdentifier, password []byte) (cipher
 
 	code, err := blockcodeByAlg[algorithmName](k)
 	if err != nil {
+		return nil, nil, err
+	}
+
+	return code, iv, nil
+}
+
+func pbDecrypterFor(algorithm pkix.AlgorithmIdentifier, password []byte) (cipher.BlockMode, error) {
+	code, iv, err := pbCodeIVFor(algorithm, password)
+
+	if err != nil {
 		return nil, err
 	}
 
 	cbc := cipher.NewCBCDecrypter(code, iv)
+	return cbc, nil
+}
+
+func pbEncrypterFor(algorithm pkix.AlgorithmIdentifier, password []byte) (cipher.BlockMode, error) {
+	code, iv, err := pbCodeIVFor(algorithm, password)
+
+	if err != nil {
+		return nil, err
+	}
+
+	cbc := cipher.NewCBCEncrypter(code, iv)
 	return cbc, nil
 }
 
@@ -89,7 +110,30 @@ func pbDecrypt(info decryptable, password []byte) (decrypted []byte, err error) 
 	return
 }
 
+func pbEncrypt(info encryptable, decrypted []byte, password []byte) error {
+	cbc, err := pbEncrypterFor(info.GetAlgorithm(), password)
+	password = nil
+	if err != nil {
+		return err
+	}
+
+	psLen := cbc.BlockSize() - len(decrypted) % cbc.BlockSize()
+	encrypted := make([]byte, len(decrypted) + psLen)
+	copy(encrypted[:len(decrypted)], decrypted)
+	copy(encrypted[len(decrypted):], bytes.Repeat([]byte{byte(psLen)}, psLen))
+	cbc.CryptBlocks(encrypted, encrypted)
+
+	info.SetData(encrypted)
+
+	return nil
+}
+
 type decryptable interface {
 	GetAlgorithm() pkix.AlgorithmIdentifier
 	GetData() []byte
+}
+
+type encryptable interface {
+	GetAlgorithm() pkix.AlgorithmIdentifier
+	SetData([]byte)
 }
