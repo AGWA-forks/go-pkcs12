@@ -1,6 +1,7 @@
 package pkcs12
 
 import (
+	"crypto/rand"
 	"crypto/x509"
 	"encoding/asn1"
 	"fmt"
@@ -51,6 +52,37 @@ func decodePkcs8ShroudedKeyBag(asn1Data, password []byte) (privateKey interface{
 	return
 }
 
+func encodePkcs8ShroudedKeyBag(privateKey interface{}, password []byte) (asn1Data []byte, err error) {
+	var pkData []byte
+	if pkData, err = marshalPKCS8PrivateKey(privateKey); err != nil {
+		return
+	}
+
+	var randomSalt []byte
+	if _, err = rand.Read(randomSalt); err != nil {
+		return
+	}
+	var paramBytes []byte
+	if paramBytes, err = asn1.Marshal(pbeParams{Salt: randomSalt, Iterations: 2048}); err != nil {
+		return
+	}
+
+	var pkinfo encryptedPrivateKeyInfo
+	pkinfo.AlgorithmIdentifier.Algorithm = asn1.ObjectIdentifier{1,2,840,113549,1,12,1,3} // TODO: don't hard code 3DES OID
+	pkinfo.AlgorithmIdentifier.Parameters.FullBytes = paramBytes
+
+	if err = pbEncrypt(&pkinfo, pkData, password); err != nil {
+		err = fmt.Errorf("error encrypting PKCS8 shrouded key bag: %v", err)
+		return
+	}
+
+	if asn1Data, err = asn1.Marshal(pkinfo); err != nil {
+		err = fmt.Errorf("error encoding cert bag: %v", err)
+		return
+	}
+	return
+}
+
 func decodeCertBag(asn1Data []byte) (x509Certificates []byte, err error) {
 	bag := new(certBag)
 	if _, err := asn1.Unmarshal(asn1Data, bag); err != nil {
@@ -61,4 +93,15 @@ func decodeCertBag(asn1Data []byte) (x509Certificates []byte, err error) {
 		return nil, NotImplementedError("only X509 certificates are supported")
 	}
 	return bag.Data, nil
+}
+
+func encodeCertBag(x509Certificates []byte) (asn1Data []byte, err error) {
+	var bag certBag
+	bag.ID = oidCertTypeX509Certificate
+	bag.Data = x509Certificates
+	if asn1Data, err = asn1.Marshal(bag); err != nil {
+		err = fmt.Errorf("error encoding cert bag: %v", err)
+		return
+	}
+	return
 }
