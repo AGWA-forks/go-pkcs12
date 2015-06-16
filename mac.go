@@ -51,3 +51,17 @@ func verifyMac(macData *macData, message, password []byte) error {
 	}
 	return nil
 }
+
+func computeMac(macData *macData, message, password []byte) error {
+	name, ok := hashNameByID[macData.Mac.Algorithm.Algorithm.String()]
+	if !ok {
+		return NotImplementedError("unknown digest algorithm: " + macData.Mac.Algorithm.Algorithm.String())
+	}
+	k := deriveMacKeyByAlg[name](macData.MacSalt, password, macData.Iterations)
+	password = nil
+
+	mac := hmac.New(hashByName[name], k)
+	mac.Write(message)
+	macData.Mac.Digest = mac.Sum(nil)
+	return nil
+}
