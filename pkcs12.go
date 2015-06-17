@@ -364,7 +364,7 @@ func Encode (privateKey interface{}, certificate *x509.Certificate, caCerts []*x
 	}
 
 	var keyBag safeBag
-	keyBag.ID = asn1.ObjectIdentifier{1,2,840,113549,1,12,10,1,2} // TODO: don't hard code pkcs8ShroudedKeyBagType OID
+	keyBag.ID = oidPkcs8ShroudedKeyBagType
 	keyBag.Value.Class = 2
 	keyBag.Value.Tag = 0
 	keyBag.Value.IsCompound = true
@@ -394,7 +394,7 @@ func Encode (privateKey interface{}, certificate *x509.Certificate, caCerts []*x
 	}
 
 	// compute the MAC
-	pfx.MacData.Mac.Algorithm.Algorithm = asn1.ObjectIdentifier{1,3,14,3,2,26}; // TODO: don't hard-code OID for SHA-1
+	pfx.MacData.Mac.Algorithm.Algorithm = oidSha1Algorithm
 	pfx.MacData.MacSalt = make([]byte, 8)
 	if _, err = rand.Read(pfx.MacData.MacSalt); err != nil {
 		return nil, err
@@ -420,7 +420,7 @@ func Encode (privateKey interface{}, certificate *x509.Certificate, caCerts []*x
 
 func makeCertBag (certBytes []byte, attributes []pkcs12Attribute) (certBag *safeBag, err error) {
 	certBag = new(safeBag)
-	certBag.ID = asn1.ObjectIdentifier{1,2,840,113549,1,12,10,1,3} // TODO: don't hard code certBagType OID
+	certBag.ID = oidCertBagType
 	certBag.Value.Class = 2
 	certBag.Value.Tag = 0
 	certBag.Value.IsCompound = true
@@ -452,7 +452,7 @@ func makeSafeContents (bags []safeBag, password []byte) (ci contentInfo, err err
 		}
 
 		var algo pkix.AlgorithmIdentifier
-		algo.Algorithm = asn1.ObjectIdentifier{1,2,840,113549,1,12,1,6} // TODO: don't hard code RC2 OID
+		algo.Algorithm = oidPbewithSHAAnd40BitRC2CBC
 		if algo.Parameters.FullBytes, err = asn1.Marshal(pbeParams{Salt: randomSalt, Iterations: 2048}); err != nil {
 			return
 		}

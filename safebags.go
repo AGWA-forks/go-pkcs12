@@ -68,7 +68,7 @@ func encodePkcs8ShroudedKeyBag(privateKey interface{}, password []byte) (asn1Dat
 	}
 
 	var pkinfo encryptedPrivateKeyInfo
-	pkinfo.AlgorithmIdentifier.Algorithm = asn1.ObjectIdentifier{1,2,840,113549,1,12,1,3} // TODO: don't hard code 3DES OID
+	pkinfo.AlgorithmIdentifier.Algorithm = oidPbeWithSHAAnd3KeyTripleDESCBC
 	pkinfo.AlgorithmIdentifier.Parameters.FullBytes = paramBytes
 
 	if err = pbEncrypt(&pkinfo, pkData, password); err != nil {
