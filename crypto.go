@@ -18,13 +18,13 @@ const (
 )
 
 var (
-	oidPbeWithSHAAnd3KeyTripleDESCBC = asn1.ObjectIdentifier{1,2,840,113549,1,12,1,3}
-	oidPbewithSHAAnd40BitRC2CBC = asn1.ObjectIdentifier{1,2,840,113549,1,12,1,6}
+	oidPbeWithSHAAnd3KeyTripleDESCBC = asn1.ObjectIdentifier{1, 2, 840, 113549, 1, 12, 1, 3}
+	oidPbewithSHAAnd40BitRC2CBC      = asn1.ObjectIdentifier{1, 2, 840, 113549, 1, 12, 1, 6}
 )
 
 var algByOID = map[string]string{
 	oidPbeWithSHAAnd3KeyTripleDESCBC.String(): pbeWithSHAAnd3KeyTripleDESCBC,
-	oidPbewithSHAAnd40BitRC2CBC.String(): pbewithSHAAnd40BitRC2CBC,
+	oidPbewithSHAAnd40BitRC2CBC.String():      pbewithSHAAnd40BitRC2CBC,
 }
 
 var blockcodeByAlg = map[string]func(key []byte) (cipher.Block, error){
@@ -117,8 +117,8 @@ func pbEncrypt(info encryptable, decrypted []byte, password []byte) error {
 		return err
 	}
 
-	psLen := cbc.BlockSize() - len(decrypted) % cbc.BlockSize()
-	encrypted := make([]byte, len(decrypted) + psLen)
+	psLen := cbc.BlockSize() - len(decrypted)%cbc.BlockSize()
+	encrypted := make([]byte, len(decrypted)+psLen)
 	copy(encrypted[:len(decrypted)], decrypted)
 	copy(encrypted[len(decrypted):], bytes.Repeat([]byte{byte(psLen)}, psLen))
 	cbc.CryptBlocks(encrypted, encrypted)

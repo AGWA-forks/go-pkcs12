@@ -1,9 +1,9 @@
 package pkcs12
 
 import (
+	"bytes"
 	"encoding/asn1"
 	"testing"
-	"bytes"
 )
 
 func TestVerifyMac(t *testing.T) {

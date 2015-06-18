@@ -27,6 +27,7 @@ var ( // Duplicated from x509 package
 	oidNamedCurveP384 = asn1.ObjectIdentifier{1, 3, 132, 0, 34}
 	oidNamedCurveP521 = asn1.ObjectIdentifier{1, 3, 132, 0, 35}
 )
+
 func oidFromNamedCurve(curve elliptic.Curve) (asn1.ObjectIdentifier, bool) { // Duplicated from x509 package
 	switch curve {
 	case elliptic.P224():
@@ -42,7 +43,7 @@ func oidFromNamedCurve(curve elliptic.Curve) (asn1.ObjectIdentifier, bool) { // 
 	return nil, false
 }
 
-func marshalPKCS8PrivateKey (key interface{}) (der []byte, err error) {
+func marshalPKCS8PrivateKey(key interface{}) (der []byte, err error) {
 	var privKey pkcs8
 	switch key := key.(type) {
 	case *rsa.PrivateKey:
@@ -65,4 +66,3 @@ func marshalPKCS8PrivateKey (key interface{}) (der []byte, err error) {
 	}
 	return asn1.Marshal(privKey)
 }
-

@@ -25,8 +25,8 @@ const (
 )
 
 var (
-	oidSha1Algorithm = asn1.ObjectIdentifier{1,3,14,3,2,26}
-	hashNameByID = map[string]string{
+	oidSha1Algorithm = asn1.ObjectIdentifier{1, 3, 14, 3, 2, 26}
+	hashNameByID     = map[string]string{
 		oidSha1Algorithm.String(): sha1Algorithm,
 	}
 	hashByName = map[string]func() hash.Hash{

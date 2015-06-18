@@ -30,8 +30,8 @@ type contentInfo struct {
 }
 
 var (
-	oidDataContentType          = asn1.ObjectIdentifier{1,2,840,113549,1,7,1}
-	oidEncryptedDataContentType = asn1.ObjectIdentifier{1,2,840,113549,1,7,6}
+	oidDataContentType          = asn1.ObjectIdentifier{1, 2, 840, 113549, 1, 7, 1}
+	oidEncryptedDataContentType = asn1.ObjectIdentifier{1, 2, 840, 113549, 1, 7, 6}
 )
 
 type encryptedData struct {
@@ -71,7 +71,7 @@ type encryptedPrivateKeyInfo struct {
 func (i encryptedPrivateKeyInfo) GetAlgorithm() pkix.AlgorithmIdentifier { return i.AlgorithmIdentifier }
 func (i encryptedPrivateKeyInfo) GetData() []byte                        { return i.EncryptedData }
 
-func (i *encryptedPrivateKeyInfo) SetData(data []byte)                    { i.EncryptedData = data }
+func (i *encryptedPrivateKeyInfo) SetData(data []byte) { i.EncryptedData = data }
 
 // PEM block types
 const (
@@ -156,9 +156,9 @@ func convertBag(bag *safeBag, password []byte) (*pem.Block, error) {
 }
 
 var (
-	oidFriendlyName     = asn1.ObjectIdentifier{1,2,840,113549,1,9,20}
-	oidLocalKeyID       = asn1.ObjectIdentifier{1,2,840,113549,1,9,21}
-	oidMicrosoftCSPName = asn1.ObjectIdentifier{1,3,6,1,4,1,311,17,1}
+	oidFriendlyName     = asn1.ObjectIdentifier{1, 2, 840, 113549, 1, 9, 20}
+	oidLocalKeyID       = asn1.ObjectIdentifier{1, 2, 840, 113549, 1, 9, 21}
+	oidMicrosoftCSPName = asn1.ObjectIdentifier{1, 3, 6, 1, 4, 1, 311, 17, 1}
 )
 
 var attributeNameByOID = map[string]string{
@@ -329,7 +329,7 @@ func getSafeContents(p12Data, password []byte) (bags []safeBag, actualPassword [
 // and contains the certificates, and another that is unencrypted and contains the private key shrouded with 3DES.
 // The private key bag and the end-entity certificate bag have the LocalKeyId attribute set to the SHA-1 fingerprint
 // of the end-entity certificate.
-func Encode (privateKey interface{}, certificate *x509.Certificate, caCerts []*x509.Certificate, utf8Password []byte) (pfxData []byte, err error) {
+func Encode(privateKey interface{}, certificate *x509.Certificate, caCerts []*x509.Certificate, utf8Password []byte) (pfxData []byte, err error) {
 	p, err := bmpString(utf8Password)
 
 	if err != nil {
@@ -420,7 +420,7 @@ func Encode (privateKey interface{}, certificate *x509.Certificate, caCerts []*x
 	return
 }
 
-func makeCertBag (certBytes []byte, attributes []pkcs12Attribute) (certBag *safeBag, err error) {
+func makeCertBag(certBytes []byte, attributes []pkcs12Attribute) (certBag *safeBag, err error) {
 	certBag = new(safeBag)
 	certBag.ID = oidCertBagType
 	certBag.Value.Class = 2
@@ -433,7 +433,7 @@ func makeCertBag (certBytes []byte, attributes []pkcs12Attribute) (certBag *safe
 	return
 }
 
-func makeSafeContents (bags []safeBag, password []byte) (ci contentInfo, err error) {
+func makeSafeContents(bags []safeBag, password []byte) (ci contentInfo, err error) {
 	var data []byte
 	if data, err = asn1.Marshal(bags); err != nil {
 		return

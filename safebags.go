@@ -9,17 +9,17 @@ import (
 
 //see https://tools.ietf.org/html/rfc7292#appendix-D
 var (
-	oidKeyBagType = asn1.ObjectIdentifier{1,2,840,113549,1,12,10,1,1}
-	oidPkcs8ShroudedKeyBagType = asn1.ObjectIdentifier{1,2,840,113549,1,12,10,1,2}
-	oidCertBagType = asn1.ObjectIdentifier{1,2,840,113549,1,12,10,1,3}
-	oidCrlBagType = asn1.ObjectIdentifier{1,2,840,113549,1,12,10,1,4}
-	oidSecretBagType = asn1.ObjectIdentifier{1,2,840,113549,1,12,10,1,5}
-	oidSafeContentsBagType = asn1.ObjectIdentifier{1,2,840,113549,1,12,10,1,6}
+	oidKeyBagType              = asn1.ObjectIdentifier{1, 2, 840, 113549, 1, 12, 10, 1, 1}
+	oidPkcs8ShroudedKeyBagType = asn1.ObjectIdentifier{1, 2, 840, 113549, 1, 12, 10, 1, 2}
+	oidCertBagType             = asn1.ObjectIdentifier{1, 2, 840, 113549, 1, 12, 10, 1, 3}
+	oidCrlBagType              = asn1.ObjectIdentifier{1, 2, 840, 113549, 1, 12, 10, 1, 4}
+	oidSecretBagType           = asn1.ObjectIdentifier{1, 2, 840, 113549, 1, 12, 10, 1, 5}
+	oidSafeContentsBagType     = asn1.ObjectIdentifier{1, 2, 840, 113549, 1, 12, 10, 1, 6}
 )
 
 var (
-	oidCertTypeX509Certificate = asn1.ObjectIdentifier{1,2,840,113549,1,9,22,1}
-	oidLocalKeyIDAttribute     = asn1.ObjectIdentifier{1,2,840,113549,1,9,21}
+	oidCertTypeX509Certificate = asn1.ObjectIdentifier{1, 2, 840, 113549, 1, 9, 22, 1}
+	oidLocalKeyIDAttribute     = asn1.ObjectIdentifier{1, 2, 840, 113549, 1, 9, 21}
 )
 
 type certBag struct {
