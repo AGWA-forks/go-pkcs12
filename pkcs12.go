@@ -328,13 +328,16 @@ func getSafeContents(p12Data, password []byte) (bags []safeBag, actualPassword [
 func Encode (privateKey interface{}, certificate *x509.Certificate, caCerts []*x509.Certificate, utf8Password []byte) (pfxData []byte, err error) {
 	p, err := bmpString(utf8Password)
 
-	for i := 0; i < len(utf8Password); i++ {
-		utf8Password[i] = 0
-	}
-
 	if err != nil {
 		return nil, err
 	}
+
+	defer func() { // clear out BMP version of the password before we return
+		for i := 0; i < len(p); i++ {
+			p[i] = 0
+		}
+	}()
+
 
 	var pfx pfxPdu
 	pfx.Version = 3
