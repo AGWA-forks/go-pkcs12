@@ -346,18 +346,18 @@ func Encode (privateKey interface{}, certificate *x509.Certificate, caCerts []*x
 	pfx.Version = 3
 
 	var certFingerprint = sha1.Sum(certificate.Raw)
-	var localKeyIdAttr pkcs12Attribute
-	localKeyIdAttr.ID = oidLocalKeyID
-	localKeyIdAttr.Value.Class = 0
-	localKeyIdAttr.Value.Tag = 17
-	localKeyIdAttr.Value.IsCompound = true
-	if localKeyIdAttr.Value.Bytes, err = asn1.Marshal(certFingerprint[:]); err != nil {
+	var localKeyIDAttr pkcs12Attribute
+	localKeyIDAttr.ID = oidLocalKeyID
+	localKeyIDAttr.Value.Class = 0
+	localKeyIDAttr.Value.Tag = 17
+	localKeyIDAttr.Value.IsCompound = true
+	if localKeyIDAttr.Value.Bytes, err = asn1.Marshal(certFingerprint[:]); err != nil {
 		return nil, err
 	}
 
 	var certBags []safeBag
 	var certBag *safeBag
-	if certBag, err = makeCertBag(certificate.Raw, []pkcs12Attribute{localKeyIdAttr}); err != nil {
+	if certBag, err = makeCertBag(certificate.Raw, []pkcs12Attribute{localKeyIDAttr}); err != nil {
 		return nil, err
 	}
 	certBags = append(certBags, *certBag)
@@ -377,21 +377,17 @@ func Encode (privateKey interface{}, certificate *x509.Certificate, caCerts []*x
 	if keyBag.Value.Bytes, err = encodePkcs8ShroudedKeyBag(privateKey, p); err != nil {
 		return nil, err
 	}
-	keyBag.Attributes = append(keyBag.Attributes, localKeyIdAttr)
+	keyBag.Attributes = append(keyBag.Attributes, localKeyIDAttr)
 
 	// Construct an authenticated safe with two SafeContents.
 	// The first SafeContents is encrypted and contains the cert bags.
 	// The second SafeContents is unencrypted and contains the shrouded key bag.
 	var authenticatedSafe [2]contentInfo
-	if certContentInfo, err := makeSafeContents(certBags, p); err != nil {
+	if authenticatedSafe[0], err = makeSafeContents(certBags, p); err != nil {
 		return nil, err
-	} else {
-		authenticatedSafe[0] = certContentInfo
 	}
-	if keyContentInfo, err := makeSafeContents([]safeBag{keyBag}, nil); err != nil {
+	if authenticatedSafe[1], err = makeSafeContents([]safeBag{keyBag}, nil); err != nil {
 		return nil, err
-	} else {
-		authenticatedSafe[1] = keyContentInfo
 	}
 
 	var authenticatedSafeBytes []byte
