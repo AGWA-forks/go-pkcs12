@@ -324,7 +324,11 @@ func getSafeContents(p12Data, password []byte) (bags []safeBag, actualPassword [
 	return
 }
 
-// Encode produces pfxData containing one private key, a more certificate, and any number of CA certificates
+// Encode produces pfxData containing one private key, an end-entity certificate, and any number of CA certificates
+// It emulates the behavior of OpenSSL's PKCS12_create: it creates two SafeContents: one that's encrypted with RC2
+// and contains the certificates, and another that is unencrypted and contains the private key shrouded with 3DES.
+// The private key bag and the end-entity certificate bag have the LocalKeyId attribute set to the SHA-1 fingerprint
+// of the end-entity certificate.
 func Encode (privateKey interface{}, certificate *x509.Certificate, caCerts []*x509.Certificate, utf8Password []byte) (pfxData []byte, err error) {
 	p, err := bmpString(utf8Password)
 
@@ -337,7 +341,6 @@ func Encode (privateKey interface{}, certificate *x509.Certificate, caCerts []*x
 			p[i] = 0
 		}
 	}()
-
 
 	var pfx pfxPdu
 	pfx.Version = 3
